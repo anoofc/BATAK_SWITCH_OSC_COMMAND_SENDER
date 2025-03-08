@@ -51,8 +51,7 @@ uint32_t lastPressTime    = 0;
 void neoPixel(uint32_t color) {
   for (int i = 0; i < NUMPIXELS; i++) {
     strip.setPixelColor(i, color);
-    strip.show();
-  }
+  } strip.show();
 }
 
 void oscSend(const char* address, const char* type, uint8_t column) {
