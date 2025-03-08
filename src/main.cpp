@@ -1,4 +1,4 @@
-#define DEBUG 0
+#define DEBUG 1
 
 #define SWITCH_PIN 12
 #define LED_PIN 13
@@ -35,16 +35,18 @@ byte mac[] = {0x90, 0xA2, 0xDA, 0x0A, 0x2B, 0X1E};    //Arduino's MAC
 
 EthernetUDP Udp;
 
-uint32_t color[] = { RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA };
-
-uint32_t lastDebounceTime = 0;
-uint32_t lastPressTime    = 0;
 bool lastState            = HIGH;
 bool currentState         = HIGH;
 bool longPressDetected    = false;
 
+uint8_t col = 1;                                // Column number
 uint8_t longPressState       = 4;
 uint8_t shortPressState      = 2;
+
+uint32_t color[] = { RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA };
+
+uint32_t lastDebounceTime = 0;
+uint32_t lastPressTime    = 0;
 
 void neoPixel(uint32_t color) {
   for (int i = 0; i < NUMPIXELS; i++) {
@@ -63,7 +65,7 @@ void oscSend(const char* address, const char* type, uint8_t column) {
   msg.empty();
 }
 
-void readSwitch() {
+void readSwitch1() {
   uint32_t currentMillis = millis();
   bool reading = digitalRead(SWITCH_PIN);
 
@@ -97,6 +99,18 @@ void readSwitch() {
   lastState = reading;
 }
 
+void readSwitch2(){
+  bool reading = digitalRead(SWITCH_PIN);
+  if (reading == LOW){
+    if (millis() - lastDebounceTime < 250){ return; }
+    oscSend("/composition/columns/", "i", col);
+    neoPixel(color[col-1]);
+    col++;
+    if (col > 6) col = 1;
+    lastDebounceTime = millis();
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(SWITCH_PIN, INPUT_PULLUP);
@@ -110,5 +124,6 @@ void setup() {
 }
 
 void loop() {
-  readSwitch();
+  // readSwitch1();
+  readSwitch2();
 }
